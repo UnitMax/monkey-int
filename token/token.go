@@ -12,8 +12,8 @@ const (
 	EOF     = "EOF"
 
 	// Identifiers and literals
-	IDENT = "IDENT"
-	INT   = "INT"
+	IDENTIFIER = "IDENTIFER"
+	INT        = "INT"
 
 	// Operators
 	ASSIGN   = "="
@@ -63,5 +63,5 @@ func (t *Token) LookupIdent(ident string) TokenType {
 		return tok
 	}
 	// no special keyword found, return identifier type
-	return IDENT
+	return IDENTIFIER
 }
