@@ -138,3 +138,35 @@ func TestIdentifierExpression(t *testing.T) {
 		t.Errorf("ident.TokenLiteral() not %s. Got=%s instead.", foobar, ident.TokenLiteral())
 	}
 }
+
+func TestIntegerLiteralExpression(t *testing.T) {
+	input := "7;"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("Program doesn't have enough statements. Got=%d statements.", len(program.Statements))
+	}
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not an ast.ExpressionStatement. Got=%T instead.", program.Statements[0])
+	}
+
+	literal, ok := statement.Expression.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatalf("exp not *ast.IntegerLiteral. Got=%q instead.", statement.Expression)
+	}
+
+	var intVal int64 = 7
+	if literal.Value != intVal {
+		t.Errorf("ident.Value not %d. Got=%d instead.", intVal, literal.Value)
+	}
+
+	if literal.TokenLiteral() != "7" {
+		t.Errorf("ident.TokenLiteral() not %s. Got=%s instead.", "7", literal.TokenLiteral())
+	}
+}
