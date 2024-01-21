@@ -188,6 +188,7 @@ func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 }
 
 func (p *Parser) parseExpression(precendence int) ast.Expression {
+	// Prefix also parses (integer) literals
 	prefix := p.prefixParseFns[p.curToken.Type]
 	if prefix == nil {
 		msg := fmt.Sprintf("No prefix parse function for %s found", p.curToken.Type)
