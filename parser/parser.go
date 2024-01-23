@@ -307,6 +307,14 @@ func (p *Parser) parseIfExpression() ast.Expression {
 
 	expression.Consequence = p.parseBlockStatement()
 
+	if p.peekTokenIs(token.ELSE) {
+		p.nextToken()
+		if !p.expectPeek(token.LBRACE) {
+			return nil // incorrectly formatted else expression
+		}
+		expression.Alternative = p.parseBlockStatement()
+	}
+
 	return expression
 }
 
