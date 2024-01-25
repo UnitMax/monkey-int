@@ -391,6 +391,18 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"((5))",
 			"5",
 		},
+		{
+			"a + add(b * c) + d",
+			"((a + add((b * c))) + d)",
+		},
+		{
+			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+		},
+		{
+			"add(a + b + c * d / f + g)",
+			"add((((a + b) + ((c * d) / f)) + g))",
+		},
 	}
 	for _, tt := range tests {
 		l := lexer.New(tt.input)
@@ -710,4 +722,55 @@ func TestCallExpressionParsing(t *testing.T) {
 	testLiteralExpression(t, expression.Arguments[0], 1)
 	testInfixExpression(t, expression.Arguments[1], 2, "*", 3)
 	testInfixExpression(t, expression.Arguments[2], 4, "+", 5)
+}
+
+func TestCallExpressionParameterParsing(t *testing.T) {
+	tests := []struct {
+		input              string
+		expectedIdentifier string
+		expectedArguments  []string
+	}{
+		{
+			input:              "add();",
+			expectedIdentifier: "add",
+			expectedArguments:  []string{},
+		},
+		{
+			input:              "add(1);",
+			expectedIdentifier: "add",
+			expectedArguments:  []string{"1"},
+		},
+		{
+			input:              "add(1, 2 * 3, 4 + 5);",
+			expectedIdentifier: "add",
+			expectedArguments:  []string{"1", "(2 * 3)", "(4 + 5)"},
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		statement := program.Statements[0].(*ast.ExpressionStatement)
+		expression, ok := statement.Expression.(*ast.CallExpression)
+		if !ok {
+			t.Fatalf("statement.Expression is not an ast.CallExpression. Got=%T instead.", statement.Expression)
+		}
+
+		if !testIdentifier(t, expression.Function, tt.expectedIdentifier) {
+			return
+		}
+
+		if len(expression.Arguments) != len(tt.expectedArguments) {
+			t.Fatalf("Incorrect number of arguments. Wanted=%d, got=%d instead.", len(tt.expectedArguments), len(expression.Arguments))
+		}
+
+		for i, arg := range tt.expectedArguments {
+			if expression.Arguments[i].String() != arg {
+				t.Errorf("Argument %d wrong. Wanted=%q, got=%q instead.", i, arg, expression.Arguments[i].String())
+			}
+		}
+	}
 }
