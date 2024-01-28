@@ -6,6 +6,8 @@ type ObjectType string
 
 const (
 	INTEGER_OBJ = "MONKEY_INT"
+	BOOLEAN_OBJ = "MONKEY_BOOL"
+	NULL_OBJ    = "MONKEY_NULL"
 )
 
 type Object interface {
@@ -23,4 +25,26 @@ func (i *Integer) Type() ObjectType {
 
 func (i *Integer) Inspect() string {
 	return fmt.Sprintf("%d", i.Value)
+}
+
+type Boolean struct {
+	Value bool
+}
+
+func (b *Boolean) Type() ObjectType {
+	return BOOLEAN_OBJ
+}
+
+func (b *Boolean) Inspect() string {
+	return fmt.Sprintf("%t", b.Value)
+}
+
+type Null struct{}
+
+func (n *Null) Type() ObjectType {
+	return NULL_OBJ
+}
+
+func (n *Null) Inspect() string {
+	return "null"
 }
