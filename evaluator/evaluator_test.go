@@ -168,3 +168,50 @@ func TestReturnStatements(t *testing.T) {
 		testIntegerObject(t, evaluated, tt.expected)
 	}
 }
+
+func TestErrorHandling(t *testing.T) {
+	tests := []struct {
+		input           string
+		expectedMessage string
+	}{
+		{
+			"5 + true;",
+			"type mismatch: MONKEY_INT + MONKEY_BOOL",
+		},
+		{
+			"5 + true; 5;",
+			"type mismatch: MONKEY_INT + MONKEY_BOOL",
+		},
+		{
+			"-true",
+			"unknown operator: -MONKEY_BOOL",
+		},
+		{
+			"true + false;",
+			"unknown operator: MONKEY_BOOL + MONKEY_BOOL",
+		}, {
+			"5; true + false; 5",
+			"unknown operator: MONKEY_BOOL + MONKEY_BOOL",
+		},
+		{
+			"if (10 > 1) { true + false; }",
+			"unknown operator: MONKEY_BOOL + MONKEY_BOOL",
+		},
+		{
+			"if (10 > 1) {if (10 > 1) {return true + false;} return 1;}",
+			"unknown operator: MONKEY_BOOL + MONKEY_BOOL",
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		errorObj, ok := evaluated.(*object.Error)
+		if !ok {
+			t.Errorf("No error object returned. Got=%T(%+v) instead.", evaluated, evaluated)
+			continue
+		}
+		if errorObj.Message != tt.expectedMessage {
+			t.Errorf("Wrong error message. Expected=%q, got=%q instead.", tt.expectedMessage, errorObj.Message)
+		}
+	}
+}
