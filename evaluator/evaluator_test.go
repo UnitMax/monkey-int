@@ -39,7 +39,8 @@ func TestEvalIntegerExpression(t *testing.T) {
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
-	return Eval(p.ParseProgram())
+	ctx := object.NewContext()
+	return Eval(p.ParseProgram(), ctx)
 }
 
 func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
@@ -201,6 +202,10 @@ func TestErrorHandling(t *testing.T) {
 			"if (10 > 1) {if (10 > 1) {return true + false;} return 1;}",
 			"unknown operator: MONKEY_BOOL + MONKEY_BOOL",
 		},
+		{
+			"foobar",
+			"identifier not found: foobar",
+		},
 	}
 
 	for _, tt := range tests {
@@ -213,5 +218,21 @@ func TestErrorHandling(t *testing.T) {
 		if errorObj.Message != tt.expectedMessage {
 			t.Errorf("Wrong error message. Expected=%q, got=%q instead.", tt.expectedMessage, errorObj.Message)
 		}
+	}
+}
+
+func TestLetStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let a = 5; a;", 5},
+		{"let a = 5 * 5; a;", 25},
+		{"let a = 5; let b = a; b;", 5},
+		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+	}
+
+	for _, tt := range tests {
+		testIntegerObject(t, testEval(tt.input), tt.expected)
 	}
 }
