@@ -62,6 +62,16 @@ func Eval(node ast.Node, ctx *object.Context) object.Object {
 		params := node.Parameters
 		body := node.Body
 		return &object.Function{Parameters: params, Ctx: ctx, Body: body}
+	case *ast.CallExpression:
+		function := Eval(node.Function, ctx)
+		if isError(function) {
+			return function
+		}
+		args := evalExpressions(node.Arguments, ctx)
+		if len(args) == 1 && isError(args[0]) {
+			return args[0]
+		}
+		return applyFunction(function, args)
 	}
 	return nil
 }
@@ -217,4 +227,42 @@ func evalIdentifier(node *ast.Identifier, ctx *object.Context) object.Object {
 		return newError("identifier not found: " + node.Value)
 	}
 	return value
+}
+
+func evalExpressions(exps []ast.Expression, ctx *object.Context) []object.Object {
+	var result []object.Object
+	for _, e := range exps {
+		evaluated := Eval(e, ctx)
+		if isError(evaluated) {
+			return []object.Object{evaluated}
+		}
+		result = append(result, evaluated)
+	}
+	return result
+}
+
+func applyFunction(fn object.Object, args []object.Object) object.Object {
+	function, ok := fn.(*object.Function)
+	if !ok {
+		return newError("Not a function: %s", fn.Type())
+	}
+	extendedCtx := extendedFunctionCtx(function, args)
+	evaluated := Eval(function.Body, extendedCtx)
+	return unwrapReturnValue(evaluated)
+}
+
+func unwrapReturnValue(obj object.Object) object.Object {
+	// Required for closures to work
+	if returnValue, ok := obj.(*object.ReturnValue); ok {
+		return returnValue.Value
+	}
+	return obj
+}
+
+func extendedFunctionCtx(fn *object.Function, args []object.Object) *object.Context {
+	ctx := object.NewEnclosedContext(fn.Ctx)
+	for paramIdx, param := range fn.Parameters {
+		ctx.Set(param.Value, args[paramIdx])
+	}
+	return ctx
 }
