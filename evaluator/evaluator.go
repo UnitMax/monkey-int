@@ -252,7 +252,11 @@ func applyFunction(fn object.Object, args []object.Object) object.Object {
 }
 
 func unwrapReturnValue(obj object.Object) object.Object {
-	// Required for closures to work
+	// We don't want the wrapper here, we want the actual value
+	// This is only necessary for return statements, expression statements already yield the value directly
+	// e.g.:
+	//   return x;  => Object.ReturnValue
+	//   x;         => Object.Integer
 	if returnValue, ok := obj.(*object.ReturnValue); ok {
 		return returnValue.Value
 	}
