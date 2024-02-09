@@ -281,3 +281,15 @@ func TestClosures(t *testing.T) {
 	input := "let newAdder = fn(x) { return fn(y) {x+y}; }; let addTwo = newAdder(2); addTwo(8);"
 	testIntegerObject(t, testEval(input), 10)
 }
+
+func TestStringLiteral(t *testing.T) {
+	input := `"hello world"`
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String. Got=%T (%+v) instead.", evaluated, evaluated)
+	}
+	if str.Value != "hello world" {
+		t.Errorf("String has the wrong value. Expected=%q, got=%q instead.", "hello world", str.Value)
+	}
+}
