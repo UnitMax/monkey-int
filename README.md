@@ -12,7 +12,7 @@ Monkey language interpreter based on Thorsten Ball's book.
 - function objects
 - closures 😎
 - simple tree walking interpreter
-- coming soon: strings
+- strings
 
 ## Progress
 
@@ -20,7 +20,7 @@ Monkey language interpreter based on Thorsten Ball's book.
 - [x] Parser
 - [x] Eval
 - [ ] Extensions:
-    - [ ] Strings
+    - [x] Strings
     - [ ] `len`
     - [ ] Hashes
     - [ ] Arrays
