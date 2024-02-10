@@ -21,7 +21,7 @@ Monkey language interpreter based on Thorsten Ball's book.
 - [x] Eval
 - [ ] Extensions:
     - [x] Strings
-    - [ ] `len`
+    - [x] `len`
     - [ ] Hashes
     - [ ] Arrays
 - [ ] t.b.d.

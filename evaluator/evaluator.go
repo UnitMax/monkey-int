@@ -238,11 +238,14 @@ func isError(obj object.Object) bool {
 }
 
 func evalIdentifier(node *ast.Identifier, ctx *object.Context) object.Object {
-	value, ok := ctx.Get(node.Value)
-	if !ok {
-		return newError("identifier not found: " + node.Value)
+	if value, ok := ctx.Get(node.Value); ok {
+		return value
 	}
-	return value
+	// look up built-in functions
+	if builtin, ok := builtins[node.Value]; ok {
+		return builtin
+	}
+	return newError("identifier not found: " + node.Value)
 }
 
 func evalExpressions(exps []ast.Expression, ctx *object.Context) []object.Object {
@@ -259,12 +262,17 @@ func evalExpressions(exps []ast.Expression, ctx *object.Context) []object.Object
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {
 	function, ok := fn.(*object.Function)
-	if !ok {
-		return newError("Not a function: %s", fn.Type())
+	if ok {
+		extendedCtx := extendedFunctionCtx(function, args)
+		evaluated := Eval(function.Body, extendedCtx)
+		return unwrapReturnValue(evaluated)
 	}
-	extendedCtx := extendedFunctionCtx(function, args)
-	evaluated := Eval(function.Body, extendedCtx)
-	return unwrapReturnValue(evaluated)
+	builtin, ok := fn.(*object.Builtin)
+	if ok {
+		// no need to unwrap since builtins don't return the custom *object.ReturnValue type
+		return builtin.Fn(args...)
+	}
+	return newError("Not a function: %s", fn.Type())
 }
 
 func unwrapReturnValue(obj object.Object) object.Object {
