@@ -84,6 +84,25 @@ func Eval(node ast.Node, ctx *object.Context) object.Object {
 			els = append(els, evalEl)
 		}
 		return &object.Array{Elements: els}
+	case *ast.IndexExpression:
+		leftEval := Eval(node.Left, ctx)
+		arr, ok := leftEval.(*object.Array)
+		if isError(leftEval) {
+			return leftEval
+		}
+		if !ok {
+			return &object.Error{Message: fmt.Sprintf("Index operator not supported for %q", leftEval.Type())}
+		}
+		indexEval := Eval(node.Index, ctx)
+		if isError(indexEval) {
+			return indexEval
+		}
+		indexNr, ok := indexEval.(*object.Integer)
+		if !ok || int(indexNr.Value) >= len(arr.Elements) || int(indexNr.Value) < 0 {
+			return NULL
+			// return &object.Error{Message: "out of bounds array access"}
+		}
+		return arr.Elements[indexNr.Value]
 	}
 	return nil
 }
