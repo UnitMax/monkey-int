@@ -74,6 +74,16 @@ func Eval(node ast.Node, ctx *object.Context) object.Object {
 			return args[0]
 		}
 		return applyFunction(function, args)
+	case *ast.ArrayLiteral:
+		var els []object.Object
+		for _, el := range node.Elements {
+			evalEl := Eval(el, ctx)
+			if isError(evalEl) {
+				return evalEl
+			}
+			els = append(els, evalEl)
+		}
+		return &object.Array{Elements: els}
 	}
 	return nil
 }
