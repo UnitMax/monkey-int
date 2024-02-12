@@ -316,6 +316,18 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`len("hello world")`, 11},
 		{`len(1)`, "argument to `len` not supported, got MONKEY_INT"},
 		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
+		{`len([1, 2, 3])`, 3},
+		{`len([])`, 0},
+		{`first([1, 2, 3])`, 1},
+		{`first([])`, nil},
+		{`first(1)`, "argument to `first` must be MONKEY_ARRAY, got MONKEY_INT"},
+		{`last([1, 2, 3])`, 3},
+		{`last([])`, nil},
+		{`last(1)`, "argument to `last` must be MONKEY_ARRAY, got MONKEY_INT"},
+		{`tail([1, 2, 3])`, []int{2, 3}},
+		{`tail([])`, nil},
+		{`push([], 1)`, []int{1}},
+		{`push(1, 1)`, "argument to `push` must be MONKEY_ARRAY, got MONKEY_INT"},
 	}
 
 	for _, tt := range tests {
@@ -323,6 +335,8 @@ func TestBuiltinFunctions(t *testing.T) {
 		switch expected := tt.expected.(type) {
 		case int:
 			testIntegerObject(t, evaluated, int64(expected))
+		case nil:
+			testNullObject(t, evaluated)
 		case string:
 			errorObj, ok := evaluated.(*object.Error)
 			if !ok {
@@ -331,6 +345,20 @@ func TestBuiltinFunctions(t *testing.T) {
 			}
 			if errorObj.Message != expected {
 				t.Errorf("Wrong error message. Expected=%q, got=%q instead.", expected, errorObj.Message)
+			}
+		case []int:
+			array, ok := evaluated.(*object.Array)
+			if !ok {
+				t.Errorf("obj is not an Array. Got=%T (%+v) instead.", evaluated, evaluated)
+				continue
+			}
+			if len(array.Elements) != len(expected) {
+				t.Errorf("Wrong number of elements. Wanted=%d, got=%d instead.", len(expected), len(array.Elements))
+				continue
+			}
+
+			for i, expectedElem := range expected {
+				testIntegerObject(t, array.Elements[i], int64(expectedElem))
 			}
 		}
 	}

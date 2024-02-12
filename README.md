@@ -2,7 +2,7 @@
 (Logo courtesy of ChatGPT... The future is now, I guess)</p>
 
 # monkey-int
-Monkey language interpreter based on Thorsten Ball's book.
+Monkey language interpreter based on Thorsten Ball's [book](https://interpreterbook.com). Including Lexer, Parser (Operator-Precedence/Pratt Parser), an object system and a very simple tree-walking interpreter/evaluator.
 
 ## Supported features
 
@@ -23,5 +23,5 @@ Monkey language interpreter based on Thorsten Ball's book.
     - [x] Strings
     - [x] `len`
     - [ ] Hashes
-    - [ ] Arrays
+    - [x] Arrays
 - [ ] t.b.d.
