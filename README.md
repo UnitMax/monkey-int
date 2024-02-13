@@ -13,6 +13,7 @@ Monkey language interpreter based on Thorsten Ball's [book](https://interpreterb
 - closures 😎
 - simple tree walking interpreter
 - strings
+- arrays
 
 ## Progress
 
@@ -22,6 +23,6 @@ Monkey language interpreter based on Thorsten Ball's [book](https://interpreterb
 - [ ] Extensions:
     - [x] Strings
     - [x] `len`
-    - [ ] Hashes
+    - [ ] Hashmaps
     - [x] Arrays
 - [ ] t.b.d.
