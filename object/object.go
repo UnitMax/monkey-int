@@ -3,6 +3,7 @@ package object
 import (
 	"bytes"
 	"fmt"
+	"hash/fnv"
 	"monkey-int/ast"
 	"strings"
 )
@@ -153,4 +154,27 @@ func (ao *Array) Inspect() string {
 	out.WriteString(strings.Join(elements, ", "))
 	out.WriteString("]")
 	return out.String()
+}
+
+type HashKey struct {
+	Type  ObjectType
+	Value uint64
+}
+
+func (b *Boolean) HashKey() HashKey {
+	if b.Value {
+		return HashKey{Type: b.Type(), Value: 1}
+	} else {
+		return HashKey{Type: b.Type(), Value: 0}
+	}
+}
+
+func (i *Integer) HashKey() HashKey {
+	return HashKey{Type: i.Type(), Value: uint64(i.Value)}
+}
+
+func (s *String) HashKey() HashKey {
+	h := fnv.New64a()
+	h.Write([]byte(s.Value))
+	return HashKey{Type: s.Type(), Value: h.Sum64()}
 }
