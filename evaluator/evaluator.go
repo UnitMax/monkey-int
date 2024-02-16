@@ -40,6 +40,8 @@ func Eval(node ast.Node, ctx *object.Context) object.Object {
 		return &object.String{Value: node.Value}
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(node.Value)
+	case *ast.HashLiteral:
+		return evalHashLiteral(node, ctx)
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, ctx)
 		if isError(right) {
@@ -322,4 +324,27 @@ func extendedFunctionCtx(fn *object.Function, args []object.Object) *object.Cont
 		ctx.Set(param.Value, args[paramIdx])
 	}
 	return ctx
+}
+
+func evalHashLiteral(node *ast.HashLiteral, ctx *object.Context) object.Object {
+	pairs := make(map[object.HashKey]object.HashPair)
+
+	for keyNode, valueNode := range node.Pairs {
+		key := Eval(keyNode, ctx)
+		if isError(key) {
+			return key
+		}
+		hashKey, ok := key.(object.Hashable)
+		if !ok {
+			return newError("Unusable as a hash key: %s", key.Type())
+		}
+		value := Eval(valueNode, ctx)
+		if isError(value) {
+			return value
+		}
+		hashed := hashKey.HashKey()
+		pairs[hashed] = object.HashPair{Key: key, Value: value}
+	}
+
+	return &object.Hash{Pairs: pairs}
 }
