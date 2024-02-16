@@ -87,24 +87,22 @@ func Eval(node ast.Node, ctx *object.Context) object.Object {
 		}
 		return &object.Array{Elements: els}
 	case *ast.IndexExpression:
-		leftEval := Eval(node.Left, ctx)
-		arr, ok := leftEval.(*object.Array)
-		if isError(leftEval) {
-			return leftEval
+		left := Eval(node.Left, ctx)
+		if isError(left) {
+			return left
 		}
-		if !ok {
-			return &object.Error{Message: fmt.Sprintf("Index operator not supported for %q", leftEval.Type())}
+		index := Eval(node.Index, ctx)
+		if isError(index) {
+			return index
 		}
-		indexEval := Eval(node.Index, ctx)
-		if isError(indexEval) {
-			return indexEval
+		switch {
+		case left.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ:
+			return evalArrayIndexExpression(left, index)
+		case left.Type() == object.HASH_OBJ:
+			return evalHashIndexExpression(left, index)
+		default:
+			return newError("index operator not supported: %s", left.Type())
 		}
-		indexNr, ok := indexEval.(*object.Integer)
-		if !ok || int(indexNr.Value) >= len(arr.Elements) || int(indexNr.Value) < 0 {
-			return NULL
-			// return &object.Error{Message: "out of bounds array access"}
-		}
-		return arr.Elements[indexNr.Value]
 	}
 	return nil
 }
@@ -347,4 +345,33 @@ func evalHashLiteral(node *ast.HashLiteral, ctx *object.Context) object.Object {
 	}
 
 	return &object.Hash{Pairs: pairs}
+}
+
+func evalArrayIndexExpression(left object.Object, index object.Object) object.Object {
+	arr, ok := left.(*object.Array)
+	if !ok {
+		return &object.Error{Message: fmt.Sprintf("Index operator not supported for %q", left.Type())}
+	}
+	indexNr, ok := index.(*object.Integer)
+	if !ok || int(indexNr.Value) >= len(arr.Elements) || int(indexNr.Value) < 0 {
+		return NULL
+		// return &object.Error{Message: "out of bounds array access"}
+	}
+	return arr.Elements[indexNr.Value]
+}
+
+func evalHashIndexExpression(hash, index object.Object) object.Object {
+	hashObject := hash.(*object.Hash)
+
+	key, ok := index.(object.Hashable)
+	if !ok {
+		return newError("unusable as hash key: %s", index.Type())
+	}
+
+	pair, ok := hashObject.Pairs[key.HashKey()]
+	if !ok {
+		return NULL
+	}
+
+	return pair.Value
 }
