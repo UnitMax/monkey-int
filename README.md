@@ -16,6 +16,7 @@ Monkey language interpreter based on Thorsten Ball's [book](https://interpreterb
 - arrays
 - hashmaps
 - printing to stdout
+- reading and writing to the filesystem using `readfile` and `writefile`
 
 ## Progress
 
@@ -27,3 +28,4 @@ Monkey language interpreter based on Thorsten Ball's [book](https://interpreterb
     - [x] `len`
     - [x] Hashmaps
     - [x] Arrays
+    - [x] File I/O

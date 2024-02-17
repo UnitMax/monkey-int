@@ -3,6 +3,7 @@ package evaluator
 import (
 	"fmt"
 	"monkey-int/object"
+	"os"
 )
 
 var builtins = map[string]*object.Builtin{
@@ -87,6 +88,42 @@ var builtins = map[string]*object.Builtin{
 		Fn: func(args ...object.Object) object.Object {
 			for _, arg := range args {
 				fmt.Println(arg.Inspect())
+			}
+			return NULL
+		},
+	},
+	"readfile": {
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 1 {
+				return &object.Error{Message: fmt.Sprintf("readfile requires one argument")}
+			}
+			filename, ok := args[0].(*object.String)
+			if !ok {
+				return &object.Error{Message: fmt.Sprintf("filename must be a string")}
+			}
+			file, err := os.ReadFile(filename.Value)
+			if err != nil {
+				return &object.Error{Message: fmt.Sprintf("error while trying to read %s: %s", filename, err)}
+			}
+			return &object.String{Value: string(file)}
+		},
+	},
+	"writefile": {
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 2 {
+				return &object.Error{Message: fmt.Sprintf("writefile requires two arguments")}
+			}
+			filename, ok := args[0].(*object.String)
+			if !ok {
+				return &object.Error{Message: fmt.Sprintf("filename must be a string")}
+			}
+			content, ok := args[1].(*object.String)
+			if !ok {
+				return &object.Error{Message: fmt.Sprintf("content must be a string")}
+			}
+			err := os.WriteFile(filename.Value, []byte(content.Value), 0666)
+			if err != nil {
+				return &object.Error{Message: fmt.Sprintf("error while trying to write %s: %s", filename, err)}
 			}
 			return NULL
 		},
