@@ -14,15 +14,16 @@ Monkey language interpreter based on Thorsten Ball's [book](https://interpreterb
 - simple tree walking interpreter
 - strings
 - arrays
+- hashmaps
+- printing to stdout
 
 ## Progress
 
 - [x] Lexer 
 - [x] Parser
 - [x] Eval
-- [ ] Extensions:
+- [x] Extensions:
     - [x] Strings
     - [x] `len`
-    - [ ] Hashmaps
+    - [x] Hashmaps
     - [x] Arrays
-- [ ] t.b.d.
