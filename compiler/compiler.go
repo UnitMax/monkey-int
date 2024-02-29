@@ -19,6 +19,32 @@ func New() *Compiler {
 }
 
 func (c *Compiler) Compile(node ast.Node) error {
+	switch node := node.(type) {
+	case *ast.Program:
+		for _, s := range node.Statements {
+			err := c.Compile(s)
+			if err != nil {
+				return err
+			}
+		}
+	case *ast.ExpressionStatement:
+		err := c.Compile(node.Expression)
+		if err != nil {
+			return err
+		}
+	case *ast.InfixExpression:
+		err := c.Compile(node.Left)
+		if err != nil {
+			return err
+		}
+		err = c.Compile(node.Right)
+		if err != nil {
+			return err
+		}
+	case *ast.IntegerLiteral:
+		integer := &object.Integer{Value: node.Value}
+		c.emit(bytecode.OpConstant, c.addConstant(integer))
+	}
 	return nil
 }
 
@@ -32,4 +58,21 @@ func (c *Compiler) Bytecode() *MyBytecode {
 type MyBytecode struct {
 	Instructions bytecode.Instructions
 	Constants    []object.Object
+}
+
+func (c *Compiler) addConstant(obj object.Object) int {
+	c.constants = append(c.constants, obj)
+	return len(c.constants) - 1
+}
+
+func (c *Compiler) emit(op bytecode.Opcode, operands ...int) int {
+	ins := bytecode.Make(op, operands...)
+	pos := c.addInstruction(ins)
+	return pos
+}
+
+func (c *Compiler) addInstruction(ins []byte) int {
+	posNewInstruction := len(c.instructions)
+	c.instructions = append(c.instructions, ins...)
+	return posNewInstruction
 }
