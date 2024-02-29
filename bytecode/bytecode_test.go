@@ -24,3 +24,51 @@ func TestMake(t *testing.T) {
 		}
 	}
 }
+
+func TestInstructionsString(t *testing.T) {
+	instructions := []Instructions{
+		Make(OpConstant, 1),
+		Make(OpConstant, 2),
+		Make(OpConstant, 65535),
+	}
+
+	expected := "0000 OpConstant 1\n0003 OpConstant 2\n0006 OpConstant 65535\n"
+
+	concatted := Instructions{}
+	for _, instruction := range instructions {
+		concatted = append(concatted, instruction...)
+	}
+
+	if concatted.String() != expected {
+		t.Errorf("Instructions wrongly formatted.\nWanted=%q\ngot=%q instead.", expected, concatted.String())
+	}
+}
+
+func TestReadOperands(t *testing.T) {
+	tests := []struct {
+		op        Opcode
+		operands  []int
+		bytesRead int
+	}{
+		{OpConstant, []int{65535}, 2},
+	}
+
+	for _, tt := range tests {
+		instruction := Make(tt.op, tt.operands...)
+		def, err := Lookup(byte(tt.op))
+		if err != nil {
+			t.Fatalf("Definition not found: %q\n", err)
+		}
+
+		operandsRead, n := ReadOperands(def, instruction[1:])
+		if n != tt.bytesRead {
+			t.Fatalf("n wrong. Wanted=%d, got=%d instead.", tt.bytesRead, n)
+		}
+
+		for i, want := range tt.operands {
+			if operandsRead[i] != want {
+				t.Errorf("Operand wrong. Wanted=%d, got=%q instead.", want, operandsRead[i])
+			}
+		}
+	}
+}
