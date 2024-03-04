@@ -45,6 +45,13 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case bytecode.OpAdd:
+			val1 := vm.pop()
+			val2 := vm.pop()
+			val1int1, _ := val1.(*object.Integer)
+			val1int2, _ := val2.(*object.Integer)
+			addVal := val1int1.Value + val1int2.Value
+			vm.push(&object.Integer{Value: addVal})
 		}
 	}
 	return nil
@@ -57,4 +64,10 @@ func (vm *VM) push(o object.Object) error {
 	vm.stack[vm.sp] = o
 	vm.sp++
 	return nil
+}
+
+func (vm *VM) pop() object.Object {
+	returnVal := vm.stack[vm.sp-1]
+	vm.sp--
+	return returnVal
 }
