@@ -4,15 +4,26 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"monkey-int/compiler"
 	"monkey-int/evaluator"
 	"monkey-int/lexer"
 	"monkey-int/object"
 	"monkey-int/parser"
+	"monkey-int/vm"
+	"os"
 )
 
 const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
+	useInterpreter := false
+	if len(os.Args) >= 2 && os.Args[1] == "-int" {
+		io.WriteString(out, "\nRunning in interpreter mode\n")
+		useInterpreter = true
+	} else {
+		io.WriteString(out, "\nRunning in compiler mode\n")
+	}
+
 	scanner := bufio.NewScanner(in)
 	ctx := object.NewContext()
 
@@ -35,9 +46,30 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		evaluated := evaluator.Eval(program, ctx)
-		if evaluated != nil {
-			io.WriteString(out, evaluated.Inspect())
+		if useInterpreter {
+			evaluated := evaluator.Eval(program, ctx)
+			if evaluated != nil {
+				io.WriteString(out, evaluated.Inspect())
+				io.WriteString(out, "\n")
+			}
+
+		} else {
+			comp := compiler.New()
+			err := comp.Compile(program)
+			if err != nil {
+				fmt.Fprintf(out, "Compilation error:\n %s\n", err)
+				continue
+			}
+
+			machine := vm.New(comp.Bytecode())
+			err = machine.Run()
+			if err != nil {
+				fmt.Fprintf(out, "Executing bytecode failed:\n %s\n", err)
+				continue
+			}
+
+			stackTop := machine.StackTop()
+			io.WriteString(out, stackTop.Inspect())
 			io.WriteString(out, "\n")
 		}
 	}
