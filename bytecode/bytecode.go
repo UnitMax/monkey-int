@@ -13,6 +13,7 @@ type Instructions []byte
 const (
 	OpConstant Opcode = 0x0A
 	OpAdd      Opcode = 0x0B
+	OpPop      Opcode = 0x0C
 )
 
 type Definition struct {
@@ -23,6 +24,7 @@ type Definition struct {
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}},
 	OpAdd:      {"OpAdd", []int{}},
+	OpPop:      {"OpPop", []int{}},
 }
 
 func Lookup(op byte) (*Definition, error) {
