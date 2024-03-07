@@ -47,6 +47,12 @@ func (c *Compiler) Compile(node ast.Node) error {
 		switch node.Operator {
 		case "+":
 			c.emit(bytecode.OpAdd)
+		case "-":
+			c.emit(bytecode.OpSub)
+		case "/":
+			c.emit(bytecode.OpDiv)
+		case "*":
+			c.emit(bytecode.OpMul)
 		default:
 			return fmt.Errorf("Unknown operator: %s", node.Operator)
 		}

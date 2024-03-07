@@ -54,6 +54,27 @@ func (vm *VM) Run() error {
 			val1int2, _ := val2.(*object.Integer)
 			addVal := val1int1.Value + val1int2.Value
 			vm.push(&object.Integer{Value: addVal})
+		case bytecode.OpSub:
+			val1 := vm.pop()
+			val2 := vm.pop()
+			val1int1, _ := val1.(*object.Integer)
+			val1int2, _ := val2.(*object.Integer)
+			subVal := val1int2.Value - val1int1.Value
+			vm.push(&object.Integer{Value: subVal})
+		case bytecode.OpMul:
+			val1 := vm.pop()
+			val2 := vm.pop()
+			val1int1, _ := val1.(*object.Integer)
+			val1int2, _ := val2.(*object.Integer)
+			multVal := val1int1.Value * val1int2.Value
+			vm.push(&object.Integer{Value: multVal})
+		case bytecode.OpDiv:
+			val1 := vm.pop()
+			val2 := vm.pop()
+			val1int1, _ := val1.(*object.Integer)
+			val1int2, _ := val2.(*object.Integer)
+			divVal := val1int2.Value / val1int1.Value
+			vm.push(&object.Integer{Value: divVal})
 		}
 	}
 	return nil
