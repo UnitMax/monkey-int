@@ -38,6 +38,8 @@ func (vm *VM) Run() error {
 		op := bytecode.Opcode(vm.instructions[ip])
 
 		switch op {
+		case bytecode.OpPop:
+			vm.pop()
 		case bytecode.OpConstant:
 			constIndex := bytecode.ReadUint16(vm.instructions[ip+1:])
 			ip += 2
@@ -70,4 +72,8 @@ func (vm *VM) pop() object.Object {
 	returnVal := vm.stack[vm.sp-1]
 	vm.sp--
 	return returnVal
+}
+
+func (vm *VM) LastPoppedStackElem() object.Object {
+	return vm.stack[vm.sp] // sp points to the next free element, so this is technically "free"
 }
