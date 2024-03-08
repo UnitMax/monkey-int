@@ -93,6 +93,20 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case bytecode.OpBang:
+			val := vm.pop()
+			if val == VmFalse {
+				vm.push(VmTrue)
+			} else { // everything that's literally true or just "truthy"
+				vm.push(VmFalse)
+			}
+		case bytecode.OpMinus:
+			val := vm.pop()
+			if ival, ok := val.(*object.Integer); ok {
+				vm.push(&object.Integer{Value: -ival.Value})
+			} else {
+				return fmt.Errorf("Unsupported type for negation: %s", val.Type())
+			}
 		}
 	}
 	return nil
