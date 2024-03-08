@@ -53,6 +53,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(bytecode.OpDiv)
 		case "*":
 			c.emit(bytecode.OpMul)
+		case ">":
+			c.emit(bytecode.OpGreaterThan)
+		case "<":
+			c.emit(bytecode.OpLessThan)
+		case "==":
+			c.emit(bytecode.OpEqual)
+		case "!=":
+			c.emit(bytecode.OpNotEqual)
 		default:
 			return fmt.Errorf("Unknown operator: %s", node.Operator)
 		}
