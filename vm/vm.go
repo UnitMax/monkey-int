@@ -88,6 +88,11 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case bytecode.OpEqual, bytecode.OpNotEqual, bytecode.OpGreaterThan, bytecode.OpLessThan:
+			err := vm.executeComparison(op)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -110,4 +115,43 @@ func (vm *VM) pop() object.Object {
 
 func (vm *VM) LastPoppedStackElem() object.Object {
 	return vm.stack[vm.sp] // sp points to the next free element, so this is technically "free"
+}
+
+func (vm *VM) executeComparison(op bytecode.Opcode) error {
+	right := vm.pop()
+	left := vm.pop()
+
+	if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+		leftValue := left.(*object.Integer).Value
+		rightValue := right.(*object.Integer).Value
+
+		switch op {
+		case bytecode.OpEqual:
+			return vm.push(nativeBoolToBooleanObject(leftValue == rightValue))
+		case bytecode.OpNotEqual:
+			return vm.push(nativeBoolToBooleanObject(leftValue != rightValue))
+		case bytecode.OpGreaterThan:
+			return vm.push(nativeBoolToBooleanObject(leftValue > rightValue))
+		case bytecode.OpLessThan:
+			return vm.push(nativeBoolToBooleanObject(leftValue < rightValue))
+		default:
+			return fmt.Errorf("Unknown operator: %d", op)
+		}
+	}
+
+	switch op {
+	case bytecode.OpEqual:
+		return vm.push(nativeBoolToBooleanObject(right == left))
+	case bytecode.OpNotEqual:
+		return vm.push(nativeBoolToBooleanObject(right != left))
+	default:
+		return fmt.Errorf("Unknown operator: %d (%s %s)", op, left.Type(), right.Type())
+	}
+}
+
+func nativeBoolToBooleanObject(input bool) *object.Boolean {
+	if input {
+		return VmTrue
+	}
+	return VmFalse
 }
