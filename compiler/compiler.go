@@ -56,6 +56,12 @@ func (c *Compiler) Compile(node ast.Node) error {
 		default:
 			return fmt.Errorf("Unknown operator: %s", node.Operator)
 		}
+	case *ast.Boolean:
+		if node.Value {
+			c.emit(bytecode.OpTrue)
+		} else {
+			c.emit(bytecode.OpFalse)
+		}
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
 		c.emit(bytecode.OpConstant, c.addConstant(integer))
