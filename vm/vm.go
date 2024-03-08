@@ -9,6 +9,9 @@ import (
 
 const StackSize = 2048
 
+var VmTrue = &object.Boolean{Value: true}
+var VmFalse = &object.Boolean{Value: false}
+
 type VM struct {
 	constants    []object.Object
 	instructions bytecode.Instructions
@@ -75,6 +78,16 @@ func (vm *VM) Run() error {
 			val1int2, _ := val2.(*object.Integer)
 			divVal := val1int2.Value / val1int1.Value
 			vm.push(&object.Integer{Value: divVal})
+		case bytecode.OpFalse:
+			err := vm.push(VmFalse)
+			if err != nil {
+				return err
+			}
+		case bytecode.OpTrue:
+			err := vm.push(VmTrue)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
