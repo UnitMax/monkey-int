@@ -10,12 +10,22 @@ import (
 type Compiler struct {
 	instructions bytecode.Instructions
 	constants    []object.Object
+
+	lastInstruction     EmittedInstruction
+	previousInstruction EmittedInstruction
+}
+
+type EmittedInstruction struct {
+	Opcode   bytecode.Opcode
+	Position int
 }
 
 func New() *Compiler {
 	return &Compiler{
-		instructions: bytecode.Instructions{},
-		constants:    []object.Object{},
+		instructions:        bytecode.Instructions{},
+		constants:           []object.Object{},
+		lastInstruction:     EmittedInstruction{},
+		previousInstruction: EmittedInstruction{},
 	}
 }
 
@@ -87,6 +97,32 @@ func (c *Compiler) Compile(node ast.Node) error {
 		default:
 			return fmt.Errorf("Unknown operator: %s", node.Operator)
 		}
+	case *ast.IfExpression:
+		err := c.Compile(node.Condition)
+		if err != nil {
+			return err
+		}
+
+		jnTruthyPos := c.emit(bytecode.OpJumpNotTruthy, 9999)
+
+		err = c.Compile(node.Consequence)
+		if err != nil {
+			return err
+		}
+
+		if c.lastInstructionIsPop() {
+			c.removeLastPop()
+		}
+
+		afterConsequencePos := len(c.instructions)
+		c.changeOperand(jnTruthyPos, afterConsequencePos)
+	case *ast.BlockStatement:
+		for _, s := range node.Statements {
+			err := c.Compile(s)
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -111,6 +147,7 @@ func (c *Compiler) addConstant(obj object.Object) int {
 func (c *Compiler) emit(op bytecode.Opcode, operands ...int) int {
 	ins := bytecode.Make(op, operands...)
 	pos := c.addInstruction(ins)
+	c.setLastInstruction(op, pos)
 	return pos
 }
 
@@ -118,4 +155,32 @@ func (c *Compiler) addInstruction(ins []byte) int {
 	posNewInstruction := len(c.instructions)
 	c.instructions = append(c.instructions, ins...)
 	return posNewInstruction
+}
+
+func (c *Compiler) setLastInstruction(op bytecode.Opcode, pos int) {
+	previous := c.lastInstruction
+	last := EmittedInstruction{Opcode: op, Position: pos}
+	c.previousInstruction = previous
+	c.lastInstruction = last
+}
+
+func (c *Compiler) lastInstructionIsPop() bool {
+	return c.lastInstruction.Opcode == bytecode.OpPop
+}
+
+func (c *Compiler) removeLastPop() {
+	c.instructions = c.instructions[:c.lastInstruction.Position]
+	c.lastInstruction = c.previousInstruction
+}
+
+func (c *Compiler) replaceInstruction(pos int, newInstruction []byte) {
+	for i := 0; i < len(newInstruction); i++ {
+		c.instructions[pos+i] = newInstruction[i]
+	}
+}
+
+func (c *Compiler) changeOperand(opPos int, operand int) {
+	op := bytecode.Opcode(c.instructions[opPos])
+	newInstruction := bytecode.Make(op, operand)
+	c.replaceInstruction(opPos, newInstruction)
 }

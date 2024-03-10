@@ -4,6 +4,8 @@
 # monkey-int
 Monkey language interpreter based on Thorsten Ball's [book](https://interpreterbook.com). Including Lexer, Parser (Operator-Precedence/Pratt Parser), an object system and a very simple tree-walking interpreter/evaluator.
 
+The interpreter is currently being expanded by a compiler and corresponding virtual machine (see subsequent book).
+
 ## Supported features
 
 - 64bit integers
@@ -29,3 +31,5 @@ Monkey language interpreter based on Thorsten Ball's [book](https://interpreterb
     - [x] Hashmaps
     - [x] Arrays
     - [x] File I/O
+- [ ] Compiler
+- [ ] MVM (Monkey Virtual Machine)
