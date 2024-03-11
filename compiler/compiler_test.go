@@ -275,6 +275,30 @@ func TestConditionals(t *testing.T) {
 				bytecode.Make(bytecode.OpPop),
 			},
 		},
+		{
+			input: `
+			if (true) {10;} else {20;}; 3333;
+			`,
+			expectedConstants: []interface{}{10, 20, 3333},
+			expectedInstructions: []bytecode.Instructions{
+				// 0000
+				bytecode.Make(bytecode.OpTrue),
+				// 0001
+				bytecode.Make(bytecode.OpJumpNotTruthy, 10),
+				// 0004
+				bytecode.Make(bytecode.OpConstant, 0),
+				// 0007
+				bytecode.Make(bytecode.OpJump, 13),
+				// 0010
+				bytecode.Make(bytecode.OpConstant, 1),
+				// 0013
+				bytecode.Make(bytecode.OpPop),
+				// 0014
+				bytecode.Make(bytecode.OpConstant, 2),
+				// 0017
+				bytecode.Make(bytecode.OpPop),
+			},
+		},
 	}
 	runCompilerTests(t, tests)
 }
