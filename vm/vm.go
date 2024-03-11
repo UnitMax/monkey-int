@@ -107,6 +107,17 @@ func (vm *VM) Run() error {
 			} else {
 				return fmt.Errorf("Unsupported type for negation: %s", val.Type())
 			}
+		case bytecode.OpJump:
+			pos := int(bytecode.ReadUint16(vm.instructions[ip+1:]))
+			ip = pos - 1
+		case bytecode.OpJumpNotTruthy:
+			pos := int(bytecode.ReadUint16(vm.instructions[ip+1:]))
+			ip += 2
+
+			condition := vm.pop()
+			if !isTruthy(condition) {
+				ip = pos - 1
+			}
 		}
 	}
 	return nil
@@ -168,4 +179,13 @@ func nativeBoolToBooleanObject(input bool) *object.Boolean {
 		return VmTrue
 	}
 	return VmFalse
+}
+
+func isTruthy(obj object.Object) bool {
+	switch obj := obj.(type) {
+	case *object.Boolean:
+		return obj.Value
+	default:
+		return true
+	}
 }
