@@ -95,11 +95,9 @@ func (vm *VM) Run() error {
 				return err
 			}
 		case bytecode.OpBang:
-			val := vm.pop()
-			if val == VmFalse {
-				vm.push(VmTrue)
-			} else { // everything that's literally true or just "truthy"
-				vm.push(VmFalse)
+			err := vm.executeBangOperator()
+			if err != nil {
+				return err
 			}
 		case bytecode.OpMinus:
 			val := vm.pop()
@@ -191,7 +189,23 @@ func isTruthy(obj object.Object) bool {
 	switch obj := obj.(type) {
 	case *object.Boolean:
 		return obj.Value
+	case *object.Null:
+		return false
 	default:
 		return true
+	}
+}
+
+func (vm *VM) executeBangOperator() error {
+	operand := vm.pop()
+	switch operand {
+	case VmTrue:
+		return vm.push(VmFalse)
+	case VmFalse:
+		return vm.push(VmTrue)
+	case VmNull:
+		return vm.push(VmTrue)
+	default:
+		return vm.push(VmFalse)
 	}
 }
