@@ -19,6 +19,7 @@ const (
 	OpDiv           Opcode = 0x0F
 	OpFalse         Opcode = 0xA0
 	OpTrue          Opcode = 0xA1
+	OpNull          Opcode = 0xA2
 	OpEqual         Opcode = 0xB0
 	OpNotEqual      Opcode = 0xB1
 	OpGreaterThan   Opcode = 0xB2
@@ -43,6 +44,7 @@ var definitions = map[Opcode]*Definition{
 	OpDiv:           {"OpDiv", []int{}},
 	OpTrue:          {"OpFalse", []int{}},
 	OpFalse:         {"OpTrue", []int{}},
+	OpNull:          {"OpNull", []int{}},
 	OpEqual:         {"OpEqual", []int{}},
 	OpNotEqual:      {"OpNotEqual", []int{}},
 	OpGreaterThan:   {"OpGreaterThan", []int{}},

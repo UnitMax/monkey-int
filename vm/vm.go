@@ -11,6 +11,7 @@ const StackSize = 2048
 
 var VmTrue = &object.Boolean{Value: true}
 var VmFalse = &object.Boolean{Value: false}
+var VmNull = &object.Null{}
 
 type VM struct {
 	constants    []object.Object
@@ -117,6 +118,11 @@ func (vm *VM) Run() error {
 			condition := vm.pop()
 			if !isTruthy(condition) {
 				ip = pos - 1
+			}
+		case bytecode.OpNull:
+			err := vm.push(VmNull)
+			if err != nil {
+				return err
 			}
 		}
 	}

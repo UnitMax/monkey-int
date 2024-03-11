@@ -264,14 +264,18 @@ func TestConditionals(t *testing.T) {
 				// 0000
 				bytecode.Make(bytecode.OpTrue),
 				// 0001
-				bytecode.Make(bytecode.OpJumpNotTruthy, 7),
+				bytecode.Make(bytecode.OpJumpNotTruthy, 10),
 				// 0004
 				bytecode.Make(bytecode.OpConstant, 0),
 				// 0007
-				bytecode.Make(bytecode.OpPop),
-				// 0008
-				bytecode.Make(bytecode.OpConstant, 1),
+				bytecode.Make(bytecode.OpJump, 11),
+				// 0010
+				bytecode.Make(bytecode.OpNull),
 				// 0011
+				bytecode.Make(bytecode.OpPop),
+				// 0012
+				bytecode.Make(bytecode.OpConstant, 1),
+				// 0015
 				bytecode.Make(bytecode.OpPop),
 			},
 		},
