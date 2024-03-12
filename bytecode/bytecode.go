@@ -28,6 +28,8 @@ const (
 	OpBang          Opcode = 0xC1
 	OpJumpNotTruthy Opcode = 0xD0
 	OpJump          Opcode = 0xD1
+	OpGetGlobal     Opcode = 0xE0
+	OpSetGlobal     Opcode = 0xE1
 )
 
 type Definition struct {
@@ -53,6 +55,8 @@ var definitions = map[Opcode]*Definition{
 	OpBang:          {"OpBang", []int{}},
 	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
 	OpJump:          {"OpJump", []int{2}},
+	OpGetGlobal:     {"OpGetGlobal", []int{2}},
+	OpSetGlobal:     {"OpSetGlobla", []int{2}},
 }
 
 func Lookup(op byte) (*Definition, error) {
