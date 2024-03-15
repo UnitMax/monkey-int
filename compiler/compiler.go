@@ -93,6 +93,9 @@ func (c *Compiler) Compile(node ast.Node) error {
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
 		c.emit(bytecode.OpConstant, c.addConstant(integer))
+	case *ast.StringLiteral:
+		str := &object.String{Value: node.Value}
+		c.emit(bytecode.OpConstant, c.addConstant(str))
 	case *ast.PrefixExpression:
 		err := c.Compile(node.Right)
 		if err != nil {
