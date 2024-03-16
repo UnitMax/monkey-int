@@ -61,34 +61,11 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
-		case bytecode.OpAdd:
-			val1 := vm.pop()
-			val2 := vm.pop()
-			val1int1, _ := val1.(*object.Integer)
-			val1int2, _ := val2.(*object.Integer)
-			addVal := val1int1.Value + val1int2.Value
-			vm.push(&object.Integer{Value: addVal})
-		case bytecode.OpSub:
-			val1 := vm.pop()
-			val2 := vm.pop()
-			val1int1, _ := val1.(*object.Integer)
-			val1int2, _ := val2.(*object.Integer)
-			subVal := val1int2.Value - val1int1.Value
-			vm.push(&object.Integer{Value: subVal})
-		case bytecode.OpMul:
-			val1 := vm.pop()
-			val2 := vm.pop()
-			val1int1, _ := val1.(*object.Integer)
-			val1int2, _ := val2.(*object.Integer)
-			multVal := val1int1.Value * val1int2.Value
-			vm.push(&object.Integer{Value: multVal})
-		case bytecode.OpDiv:
-			val1 := vm.pop()
-			val2 := vm.pop()
-			val1int1, _ := val1.(*object.Integer)
-			val1int2, _ := val2.(*object.Integer)
-			divVal := val1int2.Value / val1int1.Value
-			vm.push(&object.Integer{Value: divVal})
+		case bytecode.OpAdd, bytecode.OpSub, bytecode.OpMul, bytecode.OpDiv:
+			err := vm.executeBinaryOperation(op)
+			if err != nil {
+				return err
+			}
 		case bytecode.OpFalse:
 			err := vm.push(VmFalse)
 			if err != nil {
@@ -198,6 +175,49 @@ func (vm *VM) executeComparison(op bytecode.Opcode) error {
 	default:
 		return fmt.Errorf("Unknown operator: %d (%s %s)", op, left.Type(), right.Type())
 	}
+}
+
+func (vm *VM) executeBinaryOperation(op bytecode.Opcode) error {
+	right := vm.pop()
+	left := vm.pop()
+	leftType := left.Type()
+	rightType := right.Type()
+	switch {
+	case leftType == object.INTEGER_OBJ && rightType == object.INTEGER_OBJ:
+		return vm.executeBinaryIntegerOperation(op, left, right)
+	case leftType == object.STRING_OBJ && rightType == object.STRING_OBJ:
+		return vm.executeBinaryStringOperation(op, left, right)
+	default:
+		return fmt.Errorf("Unsupported types for binary operation: %s %s", leftType, rightType)
+	}
+}
+
+func (vm *VM) executeBinaryStringOperation(op bytecode.Opcode, left object.Object, right object.Object) error {
+	if op != bytecode.OpAdd {
+		return fmt.Errorf("Unknown string operator: %d", op)
+	}
+	leftVal := left.(*object.String).Value
+	rightVal := right.(*object.String).Value
+	return vm.push(&object.String{Value: leftVal + rightVal})
+}
+
+func (vm *VM) executeBinaryIntegerOperation(op bytecode.Opcode, left, right object.Object) error {
+	leftValue := left.(*object.Integer).Value
+	rightValue := right.(*object.Integer).Value
+	var result int64
+	switch op {
+	case bytecode.OpAdd:
+		result = leftValue + rightValue
+	case bytecode.OpSub:
+		result = leftValue - rightValue
+	case bytecode.OpMul:
+		result = leftValue * rightValue
+	case bytecode.OpDiv:
+		result = leftValue / rightValue
+	default:
+		return fmt.Errorf("Unknown integer operator: %d", op)
+	}
+	return vm.push(&object.Integer{Value: result})
 }
 
 func nativeBoolToBooleanObject(input bool) *object.Boolean {
