@@ -436,3 +436,47 @@ func TestArrayLiterals(t *testing.T) {
 	}
 	runCompilerTests(t, tests)
 }
+
+func TestHashLiterals(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input:             "{}",
+			expectedConstants: []interface{}{},
+			expectedInstructions: []bytecode.Instructions{
+				bytecode.Make(bytecode.OpHash, 0),
+				bytecode.Make(bytecode.OpPop),
+			},
+		},
+		{
+			input:             "{1: 2, 3: 4, 5: 6}",
+			expectedConstants: []interface{}{1, 2, 3, 4, 5, 6},
+			expectedInstructions: []bytecode.Instructions{
+				bytecode.Make(bytecode.OpConstant, 0),
+				bytecode.Make(bytecode.OpConstant, 1),
+				bytecode.Make(bytecode.OpConstant, 2),
+				bytecode.Make(bytecode.OpConstant, 3),
+				bytecode.Make(bytecode.OpConstant, 4),
+				bytecode.Make(bytecode.OpConstant, 5),
+				bytecode.Make(bytecode.OpHash, 6),
+				bytecode.Make(bytecode.OpPop),
+			},
+		},
+		{
+			input:             "{1: 2 + 3, 4: 5 * 6}",
+			expectedConstants: []interface{}{1, 2, 3, 4, 5, 6},
+			expectedInstructions: []bytecode.Instructions{
+				bytecode.Make(bytecode.OpConstant, 0),
+				bytecode.Make(bytecode.OpConstant, 1),
+				bytecode.Make(bytecode.OpConstant, 2),
+				bytecode.Make(bytecode.OpAdd),
+				bytecode.Make(bytecode.OpConstant, 3),
+				bytecode.Make(bytecode.OpConstant, 4),
+				bytecode.Make(bytecode.OpConstant, 5),
+				bytecode.Make(bytecode.OpMul),
+				bytecode.Make(bytecode.OpHash, 4),
+				bytecode.Make(bytecode.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
