@@ -5,22 +5,24 @@ import (
 	"fmt"
 	"hash/fnv"
 	"monkey-int/ast"
+	"monkey-int/bytecode"
 	"strings"
 )
 
 type ObjectType string
 
 const (
-	INTEGER_OBJ      = "MONKEY_INT"
-	BOOLEAN_OBJ      = "MONKEY_BOOL"
-	NULL_OBJ         = "MONKEY_NULL"
-	RETURN_VALUE_OBJ = "MONKEY_RETURN"
-	ERROR_OBJ        = "MONKEY_ERROR"
-	FUNCTION_OBJ     = "MONKEY_FUNC"
-	STRING_OBJ       = "MONKEY_STRING"
-	BUILTIN_OBJ      = "MONKEY_BUILTIN"
-	ARRAY_OBJ        = "MONKEY_ARRAY"
-	HASH_OBJ         = "MONKEY_HASH"
+	INTEGER_OBJ           = "MONKEY_INT"
+	BOOLEAN_OBJ           = "MONKEY_BOOL"
+	NULL_OBJ              = "MONKEY_NULL"
+	RETURN_VALUE_OBJ      = "MONKEY_RETURN"
+	ERROR_OBJ             = "MONKEY_ERROR"
+	FUNCTION_OBJ          = "MONKEY_FUNC"
+	STRING_OBJ            = "MONKEY_STRING"
+	BUILTIN_OBJ           = "MONKEY_BUILTIN"
+	ARRAY_OBJ             = "MONKEY_ARRAY"
+	HASH_OBJ              = "MONKEY_HASH"
+	COMPILED_FUNCTION_OBJ = "MONKEY_COMPILED_FUNC"
 )
 
 type Object interface {
@@ -208,4 +210,16 @@ func (h *Hash) Inspect() string {
 
 type Hashable interface {
 	HashKey() HashKey
+}
+
+type CompiledFunction struct {
+	Instructions bytecode.Instructions
+}
+
+func (cf *CompiledFunction) Type() ObjectType {
+	return COMPILED_FUNCTION_OBJ
+}
+
+func (cf *CompiledFunction) Inspect() string {
+	return fmt.Sprintf("CompiledFunction[%p]", cf)
 }
