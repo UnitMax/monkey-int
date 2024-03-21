@@ -28,6 +28,7 @@ const (
 	OpBang          Opcode = 0xC1
 	OpJumpNotTruthy Opcode = 0xD0
 	OpJump          Opcode = 0xD1
+	OpCall          Opcode = 0xD2
 	OpGetGlobal     Opcode = 0xE0
 	OpSetGlobal     Opcode = 0xE1
 	OpArray         Opcode = 0xF0
@@ -58,6 +59,7 @@ var definitions = map[Opcode]*Definition{
 	OpBang:          {"OpBang", []int{}},
 	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
 	OpJump:          {"OpJump", []int{2}},
+	OpCall:          {"OpCall", []int{}},
 	OpGetGlobal:     {"OpGetGlobal", []int{2}},
 	OpSetGlobal:     {"OpSetGlobal", []int{2}},
 	OpArray:         {"OpArray", []int{2}},
