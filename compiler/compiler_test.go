@@ -150,6 +150,17 @@ func testConstants(t *testing.T, expected []interface{}, actual []object.Object)
 			if err != nil {
 				return fmt.Errorf("Constant %d - testStringObject failed: %s", i, err)
 			}
+		case []bytecode.Instructions:
+			fn, ok := actual[i].(*object.CompiledFunction)
+			if !ok {
+				return fmt.Errorf("Constant %d - not a function: %T",
+					i, actual[i])
+			}
+			err := testInstructions(constant, fn.Instructions)
+			if err != nil {
+				return fmt.Errorf("Constant %d - testInstructions failed: %s",
+					i, err)
+			}
 		}
 	}
 	return nil
@@ -509,6 +520,29 @@ func TestIndexExpressions(t *testing.T) {
 				bytecode.Make(bytecode.OpConstant, 3),
 				bytecode.Make(bytecode.OpSub),
 				bytecode.Make(bytecode.OpIndex),
+				bytecode.Make(bytecode.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
+
+func TestFunctions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `fn() { return 5 + 10 }`,
+			expectedConstants: []interface{}{
+				5,
+				10,
+				[]bytecode.Instructions{
+					bytecode.Make(bytecode.OpConstant, 0),
+					bytecode.Make(bytecode.OpConstant, 1),
+					bytecode.Make(bytecode.OpAdd),
+					bytecode.Make(bytecode.OpReturnValue),
+				},
+			},
+			expectedInstructions: []bytecode.Instructions{
+				bytecode.Make(bytecode.OpConstant, 2),
 				bytecode.Make(bytecode.OpPop),
 			},
 		},
