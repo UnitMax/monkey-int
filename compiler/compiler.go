@@ -16,6 +16,9 @@ type Compiler struct {
 	previousInstruction EmittedInstruction
 
 	symbolTable *SymbolTable
+
+	scopes     []CompilationScope
+	scopeIndex int
 }
 
 type EmittedInstruction struct {
@@ -268,4 +271,10 @@ func (c *Compiler) changeOperand(opPos int, operand int) {
 	op := bytecode.Opcode(c.instructions[opPos])
 	newInstruction := bytecode.Make(op, operand)
 	c.replaceInstruction(opPos, newInstruction)
+}
+
+type CompilationScope struct {
+	instructions        bytecode.Instructions
+	lastInstruction     EmittedInstruction
+	previousInstruction EmittedInstruction
 }
