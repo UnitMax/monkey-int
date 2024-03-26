@@ -549,3 +549,45 @@ func TestFunctions(t *testing.T) {
 	}
 	runCompilerTests(t, tests)
 }
+
+func TestCompilerScopes(t *testing.T) {
+	compiler := New()
+	if compiler.scopeIndex != 0 {
+		t.Errorf("scopeIndex wrong. Got=%d, wanted=%d", compiler.scopeIndex, 0)
+	}
+	compiler.emit(bytecode.OpMul)
+	compiler.enterScope()
+	if compiler.scopeIndex != 1 {
+		t.Errorf("scopeIndex wrong. Got=%d, Wanted=%d", compiler.scopeIndex, 1)
+	}
+	compiler.emit(bytecode.OpSub)
+	if len(compiler.scopes[compiler.scopeIndex].instructions) != 1 {
+		t.Errorf("instructions length wrong. got=%d",
+			len(compiler.scopes[compiler.scopeIndex].instructions))
+	}
+	last := compiler.scopes[compiler.scopeIndex].lastInstruction
+	if last.Opcode != bytecode.OpSub {
+		t.Errorf("lastInstruction.Opcode wrong. Got=%d, wanted=%d",
+			last.Opcode, bytecode.OpSub)
+	}
+	compiler.leaveScope()
+	if compiler.scopeIndex != 0 {
+		t.Errorf("scopeIndex wrong. Got=%d, wanted=%d",
+			compiler.scopeIndex, 0)
+	}
+	compiler.emit(bytecode.OpAdd)
+	if len(compiler.scopes[compiler.scopeIndex].instructions) != 2 {
+		t.Errorf("Instructions length wrong. Got=%d",
+			len(compiler.scopes[compiler.scopeIndex].instructions))
+	}
+	last = compiler.scopes[compiler.scopeIndex].lastInstruction
+	if last.Opcode != bytecode.OpAdd {
+		t.Errorf("lastInstruction.Opcode wrong. Got=%d, wanted=%d",
+			last.Opcode, bytecode.OpAdd)
+	}
+	previous := compiler.scopes[compiler.scopeIndex].previousInstruction
+	if previous.Opcode != bytecode.OpMul {
+		t.Errorf("previousInstruction.Opcode wrong. Got=%d, wanted=%d",
+			previous.Opcode, bytecode.OpMul)
+	}
+}
