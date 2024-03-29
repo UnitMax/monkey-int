@@ -546,6 +546,38 @@ func TestFunctions(t *testing.T) {
 				bytecode.Make(bytecode.OpPop),
 			},
 		},
+		{
+			input: `fn() { 5 + 10 }`, expectedConstants: []interface{}{
+				5,
+				10,
+				[]bytecode.Instructions{
+					bytecode.Make(bytecode.OpConstant, 0),
+					bytecode.Make(bytecode.OpConstant, 1),
+					bytecode.Make(bytecode.OpAdd),
+					bytecode.Make(bytecode.OpReturnValue),
+				},
+			},
+			expectedInstructions: []bytecode.Instructions{
+				bytecode.Make(bytecode.OpConstant, 2),
+				bytecode.Make(bytecode.OpPop),
+			},
+		},
+		{
+			input: `fn() { 1; 2 }`, expectedConstants: []interface{}{
+				1,
+				2,
+				[]bytecode.Instructions{
+					bytecode.Make(bytecode.OpConstant, 0),
+					bytecode.Make(bytecode.OpPop),
+					bytecode.Make(bytecode.OpConstant, 1),
+					bytecode.Make(bytecode.OpReturnValue),
+				},
+			},
+			expectedInstructions: []bytecode.Instructions{
+				bytecode.Make(bytecode.OpConstant, 2),
+				bytecode.Make(bytecode.OpPop),
+			},
+		},
 	}
 	runCompilerTests(t, tests)
 }
