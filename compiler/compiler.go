@@ -223,6 +223,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if c.lastInstructionIs(bytecode.OpPop) {
 			c.replaceLastPopWithReturn()
 		}
+		if !c.lastInstructionIs(bytecode.OpReturnValue) {
+			// empty function body
+			c.emit(bytecode.OpReturn)
+		}
 
 		instructions := c.leaveScope()
 
