@@ -9,8 +9,7 @@ import (
 )
 
 type Compiler struct {
-	instructions bytecode.Instructions
-	constants    []object.Object
+	constants []object.Object
 
 	symbolTable *SymbolTable
 
@@ -30,11 +29,10 @@ func New() *Compiler {
 		previousInstruction: EmittedInstruction{},
 	}
 	return &Compiler{
-		instructions: bytecode.Instructions{},
-		constants:    []object.Object{},
-		symbolTable:  NewSymbolTable(),
-		scopes:       []CompilationScope{mainScope},
-		scopeIndex:   0,
+		constants:   []object.Object{},
+		symbolTable: NewSymbolTable(),
+		scopes:      []CompilationScope{mainScope},
+		scopeIndex:  0,
 	}
 }
 
@@ -238,6 +236,12 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 		c.emit(bytecode.OpReturnValue)
+	case *ast.CallExpression:
+		err := c.Compile(node.Function)
+		if err != nil {
+			return err
+		}
+		c.emit(bytecode.OpCall)
 	}
 	return nil
 }

@@ -635,3 +635,44 @@ func TestFunctionsWithoutReturnValue(t *testing.T) {
 	}
 	runCompilerTests(t, tests)
 }
+
+func TestFunctionCalls(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `fn() { 24 }();`,
+			expectedConstants: []interface{}{
+				24,
+				[]bytecode.Instructions{
+					bytecode.Make(bytecode.OpConstant, 0), // The literal "24"
+					bytecode.Make(bytecode.OpReturnValue),
+				},
+			},
+			expectedInstructions: []bytecode.Instructions{
+				bytecode.Make(bytecode.OpConstant, 1), // The compiled function
+				bytecode.Make(bytecode.OpCall),
+				bytecode.Make(bytecode.OpPop),
+			},
+		},
+		{
+			input: `
+	let noArg = fn() { 24 };
+	noArg();
+	`,
+			expectedConstants: []interface{}{
+				24,
+				[]bytecode.Instructions{
+					bytecode.Make(bytecode.OpConstant, 0), // The literal "24"
+					bytecode.Make(bytecode.OpReturnValue),
+				},
+			},
+			expectedInstructions: []bytecode.Instructions{
+				bytecode.Make(bytecode.OpConstant, 1), // The compiled function
+				bytecode.Make(bytecode.OpSetGlobal, 0),
+				bytecode.Make(bytecode.OpGetGlobal, 0),
+				bytecode.Make(bytecode.OpCall),
+				bytecode.Make(bytecode.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
