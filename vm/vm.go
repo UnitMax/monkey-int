@@ -22,6 +22,9 @@ type VM struct {
 	sp    int // stackpointer, always pointing to the next FREE slot in the stack
 
 	globals []object.Object
+
+	frames      []*Frame
+	framesIndex int
 }
 
 func New(myBytecode *compiler.MyBytecode) *VM {
@@ -341,4 +344,18 @@ func (vm *VM) executeHashIndex(hash, index object.Object) error {
 		return vm.push(VmNull)
 	}
 	return vm.push(pair.Value)
+}
+
+func (vm *VM) currentFrame() *Frame {
+	return vm.frames[vm.framesIndex-1]
+}
+
+func (vm *VM) pushFrame(f *Frame) {
+	vm.frames[vm.framesIndex] = f
+	vm.framesIndex++
+}
+
+func (vm *VM) popFrame() *Frame {
+	vm.framesIndex--
+	return vm.frames[vm.framesIndex]
 }
