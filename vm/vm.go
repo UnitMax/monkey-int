@@ -9,14 +9,14 @@ import (
 
 const StackSize = 2048
 const GlobalsSize = 65536
+const MaxFrames = 1024
 
 var VmTrue = &object.Boolean{Value: true}
 var VmFalse = &object.Boolean{Value: false}
 var VmNull = &object.Null{}
 
 type VM struct {
-	constants    []object.Object
-	instructions bytecode.Instructions
+	constants []object.Object
 
 	stack []object.Object
 	sp    int // stackpointer, always pointing to the next FREE slot in the stack
@@ -28,12 +28,18 @@ type VM struct {
 }
 
 func New(myBytecode *compiler.MyBytecode) *VM {
+	mainFn := &object.CompiledFunction{Instructions: myBytecode.Instructions}
+	mainFrame := NewFrame(mainFn)
+	frames := make([]*Frame, MaxFrames)
+	frames[0] = mainFrame
+
 	return &VM{
-		instructions: myBytecode.Instructions,
-		constants:    myBytecode.Constants,
-		stack:        make([]object.Object, StackSize),
-		sp:           0,
-		globals:      make([]object.Object, GlobalsSize),
+		constants:   myBytecode.Constants,
+		stack:       make([]object.Object, StackSize),
+		sp:          0,
+		globals:     make([]object.Object, GlobalsSize),
+		frames:      frames,
+		framesIndex: 1,
 	}
 }
 
@@ -51,15 +57,23 @@ func (vm *VM) StackTop() object.Object {
 }
 
 func (vm *VM) Run() error {
-	for ip := 0; ip < len(vm.instructions); ip++ {
-		op := bytecode.Opcode(vm.instructions[ip])
+	var ip int
+	var ins bytecode.Instructions
+	var op bytecode.Opcode
+
+	for vm.currentFrame().ip < len(vm.currentFrame().Instructions())-1 {
+		vm.currentFrame().ip++
+
+		ip = vm.currentFrame().ip
+		ins = vm.currentFrame().Instructions()
+		op = bytecode.Opcode(ins[ip])
 
 		switch op {
 		case bytecode.OpPop:
 			vm.pop()
 		case bytecode.OpConstant:
-			constIndex := bytecode.ReadUint16(vm.instructions[ip+1:])
-			ip += 2
+			constIndex := bytecode.ReadUint16(ins[ip+1:])
+			vm.currentFrame().ip += 2
 			err := vm.push(vm.constants[constIndex])
 			if err != nil {
 				return err
@@ -97,15 +111,15 @@ func (vm *VM) Run() error {
 				return fmt.Errorf("Unsupported type for negation: %s", val.Type())
 			}
 		case bytecode.OpJump:
-			pos := int(bytecode.ReadUint16(vm.instructions[ip+1:]))
-			ip = pos - 1
+			pos := int(bytecode.ReadUint16(ins[ip+1:]))
+			vm.currentFrame().ip = pos - 1
 		case bytecode.OpJumpNotTruthy:
-			pos := int(bytecode.ReadUint16(vm.instructions[ip+1:]))
-			ip += 2
+			pos := int(bytecode.ReadUint16(ins[ip+1:]))
+			vm.currentFrame().ip += 2
 
 			condition := vm.pop()
 			if !isTruthy(condition) {
-				ip = pos - 1
+				vm.currentFrame().ip = pos - 1
 			}
 		case bytecode.OpNull:
 			err := vm.push(VmNull)
@@ -113,20 +127,20 @@ func (vm *VM) Run() error {
 				return err
 			}
 		case bytecode.OpSetGlobal:
-			globalIndex := bytecode.ReadUint16(vm.instructions[ip+1:])
-			ip += 2
+			globalIndex := bytecode.ReadUint16(ins[ip+1:])
+			vm.currentFrame().ip += 2
 			vm.globals[globalIndex] = vm.pop()
 		case bytecode.OpGetGlobal:
-			globalIndex := bytecode.ReadUint16(vm.instructions[ip+1:])
-			ip += 2
+			globalIndex := bytecode.ReadUint16(ins[ip+1:])
+			vm.currentFrame().ip += 2
 
 			err := vm.push(vm.globals[globalIndex])
 			if err != nil {
 				return err
 			}
 		case bytecode.OpArray:
-			numElements := int(bytecode.ReadUint16(vm.instructions[ip+1:]))
-			ip += 2
+			numElements := int(bytecode.ReadUint16(ins[ip+1:]))
+			vm.currentFrame().ip += 2
 			array := vm.buildArray(vm.sp-numElements, vm.sp)
 			vm.sp = vm.sp - numElements
 			err := vm.push(array)
@@ -134,8 +148,8 @@ func (vm *VM) Run() error {
 				return err
 			}
 		case bytecode.OpHash:
-			numElements := int(bytecode.ReadUint16(vm.instructions[ip+1:]))
-			ip += 2
+			numElements := int(bytecode.ReadUint16(ins[ip+1:]))
+			vm.currentFrame().ip += 2
 
 			hash, err := vm.buildHash(vm.sp-numElements, vm.sp)
 			if err != nil {
